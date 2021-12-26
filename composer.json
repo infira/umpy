@@ -1,0 +1,21 @@
+{
+  "name": "infira/umpy",
+  "authors": [
+	{
+	  "name": "Gen Taliaru",
+	  "email": "gen@infira.ee"
+	}
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "autoload": {
+	"psr-4": {
+	  "Infira\\Umpy\\": "src/"
+	}
+  },
+
+  "require": {
+	"laravel/framework": "^8.65",
+	"infira/poesis": "v2.x-dev"
+  }
+}
