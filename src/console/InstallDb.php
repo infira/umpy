@@ -2,10 +2,17 @@
 
 namespace Infira\Umpy\console;
 
-use Illuminate\Console\Command;
+use Symfony\Component\Console\Command\Command as CommandAlias;
+use Infira\Umpy\console\installer\View;
+use Infira\Poesis\Connection;
 
-class InstallDb extends Command
+abstract class InstallDb extends \Infira\Umpy\console\Command
 {
+	/**
+	 * @var \Infira\Poesis\Connection
+	 */
+	public $db;
+	
 	/**
 	 * The name and signature of the console command.
 	 *
@@ -35,17 +42,26 @@ class InstallDb extends Command
 	 *
 	 * @return int
 	 */
-	public function handle()
+	public function handle(): int
 	{
+		$this->configureUmpyCommand();
+		if (!$this->db) {
+			$this->error('Db connection is not initilized');
+		}
 		if ($this->option('view')) {
-			$this->installViews();
+			$view = $this->installViews(new View($this));
+			$view->install();
 		}
 		
-		return 0;
+		return CommandAlias::SUCCESS;
 	}
 	
-	private function installViews()
+	protected function setDb(Connection $db)
 	{
-		debug("asdasd");
+		$this->db = $db;
 	}
+	
+	protected abstract function configureUmpyCommand();
+	
+	protected abstract function installViews(View $view): View;
 }
