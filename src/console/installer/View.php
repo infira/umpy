@@ -25,5 +25,6 @@ class View extends Collector
 				$this->cmd->db->fileQuery($fn, $this->getVariables());
 			}
 		}
+		$this->cmd->info('Views installed');
 	}
 }

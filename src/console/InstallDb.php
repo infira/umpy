@@ -5,6 +5,7 @@ namespace Infira\Umpy\console;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 use Infira\Umpy\console\installer\View;
 use Infira\Poesis\Connection;
+use Infira\Umpy\console\installer\Trigger;
 
 abstract class InstallDb extends \Infira\Umpy\console\Command
 {
@@ -18,7 +19,7 @@ abstract class InstallDb extends \Infira\Umpy\console\Command
 	 *
 	 * @var string
 	 */
-	protected $signature = 'idb:install {--w|view}';
+	protected $signature = 'idb:install {--w|view} {--t|trigger}';
 	
 	/**
 	 * The console command description.
@@ -46,11 +47,19 @@ abstract class InstallDb extends \Infira\Umpy\console\Command
 	{
 		$this->configureUmpyCommand();
 		if (!$this->db) {
-			$this->error('Db connection is not initilized');
+			$this->error('Db connection is not initialized');
 		}
 		if ($this->option('view')) {
 			$view = $this->installViews(new View($this));
-			$view->install();
+			if ($view !== null) {
+				$view->install();
+			}
+		}
+		if ($this->option('trigger')) {
+			$trigger = $this->installTriggers(new Trigger($this));
+			if ($trigger !== null) {
+				$trigger->install();
+			}
 		}
 		
 		return CommandAlias::SUCCESS;
@@ -63,5 +72,7 @@ abstract class InstallDb extends \Infira\Umpy\console\Command
 	
 	protected abstract function configureUmpyCommand();
 	
-	protected abstract function installViews(View $view): View;
+	protected abstract function installViews(View $view): ?View;
+	
+	protected abstract function installTriggers(Trigger $view): ?Trigger;
 }
