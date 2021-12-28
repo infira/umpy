@@ -6,18 +6,23 @@ use Infira\Utils\Dir;
 
 class Path
 {
-	protected static function root(string $rootPath, string $file): string
+	protected static function rootPath(string $rootPath, string $file): string
 	{
 		return Dir::fixPath(base_path($rootPath)) . $file;
 	}
 	
+	public static function root(string $path = ''): string
+	{
+		return self::rootPath('', $path);
+	}
+	
 	public static function dbViews(string $path = ''): string
 	{
-		return self::root('database/views', $path);
+		return self::rootPath('database/views', $path);
 	}
 	
 	public static function dbTriggers(string $path = ''): string
 	{
-		return self::root('database/triggers', $path);
+		return self::rootPath('database/triggers', $path);
 	}
 }
