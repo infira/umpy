@@ -84,7 +84,7 @@ abstract class Install extends Command
 			$con     = File::getContent($fn);
 			$queries = explode("[TSP]", $con);
 			foreach ($queries as $q) {
-				$this->db::realQuery(Variable::assign($vars, $q));
+				$this->db->query(Variable::assign($vars, $q));
 			}
 			$this->msg('<info>installed trigger: </info>' . $fn);
 		}
