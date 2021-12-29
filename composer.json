@@ -16,6 +16,7 @@
 
   "require": {
 	"laravel/framework": "^8.65",
-	"infira/poesis": "v2.x-dev"
+	"infira/poesis": "v2.x-dev",
+	"infira/console": "dev-main"
   }
 }
