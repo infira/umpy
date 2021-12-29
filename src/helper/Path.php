@@ -25,4 +25,9 @@ class Path
 	{
 		return self::rootPath('database/triggers', $path);
 	}
+	
+	public static function dbUpdates(string $path = ''): string
+	{
+		return self::rootPath('database/updates', $path);
+	}
 }
