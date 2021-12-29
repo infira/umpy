@@ -29,7 +29,7 @@ class SqlFileCollector extends FileCollector
 				}
 			}
 			else {
-				$this->cmd->error('File is not file or path(' . $file . ') not found');
+				$this->cmd->getOutput()->error('File is not file or path(' . $file . ') not found');
 			}
 		}
 	}

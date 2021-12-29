@@ -3,18 +3,20 @@
 namespace Infira\Umpy\console\db;
 
 use Symfony\Component\Console\Command\Command as CommandAlias;
-use Infira\Umpy\console\helper\Collector;
 use Infira\Umpy\console\helper\SqlFileCollector;
 use Infira\Poesis\orm\Model;
+use Infira\Utils\File;
+use Infira\Utils\Variable;
 
 abstract class Update extends Command
 {
-	protected                  $signature   = 'idb:update';
+	protected                  $signature   = 'idb:update {--r|reset} {--f|flush}';
 	protected                  $description = 'Update Db';
 	protected SqlFileCollector $updates;
 	
 	public function handle(): int
 	{
+		$this->updates = $this->newSqlFileCollector();
 		$this->configureUmpy();
 		if (!$this->db) {
 			$this->error('Db connection is not initialized');
@@ -26,19 +28,19 @@ abstract class Update extends Command
 	
 	private function update()
 	{
-		$this->updates = $this->newSqlFileCollector();
-		$files         = $this->updates->getFiles();
+		$files = $this->updates->getFiles();
 		if (!$files) {
 			$this->error('No files to update');
 			exit;
 		}
 		
+		$vars = $this->updates->getVariables();
 		foreach ($files as $file) {
-			$this->runSqlFile($file);
+			$this->runSqlFile($file, $vars);
 		}
 	}
 	
-	private function runSqlFile(string $file)
+	private function runSqlFile(string $file, array $vars)
 	{
 		$lines = file($file);
 		
@@ -46,7 +48,7 @@ abstract class Update extends Command
 		$templine = "";
 		$queries  = [];
 		if ($this->input->getOption('reset') or $this->input->getOption('flush')) {
-			Db::TSqlUpdates()->voidLog()->truncate();
+			$this->getDbModel()->voidLog()->truncate();
 			if ($this->input->getOption('flush')) {
 				return;
 			}
@@ -73,7 +75,7 @@ abstract class Update extends Command
 		}
 		$isSystem = 1; //later when CMS is implemented this is needed
 		if ($queries) {
-			$dbUpdates = Db::TSqlUpdates()->select()->getValueAsKey("hash");
+			$dbUpdates = $this->getDbModel()->select()->getValueAsKey("hash");
 			
 			foreach ($queries as $updateNr => $rawQuery) {
 				$ok   = true;
@@ -83,38 +85,31 @@ abstract class Update extends Command
 						$ok = false;
 					}
 				}
-				$void = false;
-				if (substr($rawQuery, 0, 7) == "--void:") {
-					$void = true;
-				}
-				addExtraErrorInfo('hash', $hash);
-				addExtraErrorInfo('$rawQuery', $rawQuery);
 				if ($ok === true) {
-					$Db = Db::TSqlUpdates();
+					$Db = $this->getDbModel();
 					$Db->voidLog();
 					$Db->hash($hash);
 					$Db->updateNr($updateNr);
 					//$Db->isSystem ($isSystem);
 					$Db->installed(1);
 					$Db->rawQuery($rawQuery);
-					$query = Variable::assign($this->vars, $rawQuery);
+					$query = Variable::assign($vars, $rawQuery);
 					$Db->sqlQuery($query);
-					addExtraErrorInfo('$query', $query);
-					if (substr($query, 0, 10) == "phpScript:") {
-						$fileName   = substr($query, 10, -1);
-						$scriptFile = $this->phpScriptPath . $fileName;
+					if (str_starts_with($query, "phpScript:")) {
+						$ex     = explode(':', $query);
+						$script = $this->getPhpScriptLocation($ex[1]);
 						if (!$this->input->getOption('reset')) {
-							$this->runPhpScript($scriptFile);
+							$this->runPhpScript($script);
 						}
-						$Db->phpScriptFileName($scriptFile);
-						$Db->phpScript(File::getContent($scriptFile));
-						$this->message('<fg=#cc00ff>PHP script</>: ' . $scriptFile);
+						$Db->phpScriptFileName($script);
+						$Db->phpScript(File::getContent($script));
+						$this->msg('<fg=#cc00ff>PHP script</>: ' . $script);
 					}
 					else {
 						if (!$this->input->getOption('reset')) {
-							Db::realQuery($query);
+							$this->db->query($query);
 						}
-						$this->message('<fg=#00aaff>SQL query</>: ' . $query);
+						$this->msg('<fg=#00aaff>SQL query</>: ' . $query);
 					}
 					$Db->insert();
 				}
@@ -123,5 +118,15 @@ abstract class Update extends Command
 		$this->info('Everything is up to date');
 	}
 	
-	abstract protected function getDbModel():Model;
+	private function runPhpScript($script): void
+	{
+		if (!file_exists($script)) {
+			$this->errorExit("phpScript('$script') does not exist");
+		}
+		require_once $script;
+	}
+	
+	abstract protected function getPhpScriptLocation(string $script): string;
+	
+	abstract protected function getDbModel(): Model;
 }

@@ -23,7 +23,7 @@ abstract class FileCollector
 	public function addPath(string $path)
 	{
 		if (!is_dir($path)) {
-			$this->cmd->error("Must be corret path($path)");
+			$this->cmd->getOutput()->error("Must be corret path($path)");
 			
 			return false;
 		}
@@ -33,7 +33,7 @@ abstract class FileCollector
 	public function addFile(string $file)
 	{
 		if (!file_exists($file)) {
-			$this->cmd->error("File($file) does not exists");
+			$this->cmd->getOutput()->error("File($file) does not exists");
 			
 			return false;
 		}

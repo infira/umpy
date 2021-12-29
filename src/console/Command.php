@@ -20,21 +20,27 @@ abstract class Command extends \Illuminate\Console\Command
 	
 	public function __call($method, $parameters)
 	{
-		if (method_exists($this->output, $method)) {
-			return $this->output->$method(...$parameters);
+		$output = $this->getOutput();
+		if (method_exists($output, $method)) {
+			return $output->$method(...$parameters);
 		}
-		$this->output->error("Unknown method('$method')");
-	}
-	
-	public function error($string)
-	{
-		$this->output->error($string);
-		exit;
+		$output->error("Unknown method('$method')");
 	}
 	
 	protected function success(): int
 	{
 		return CommandAlias::SUCCESS;
+	}
+	
+	public function getOutput(): ConsoleOutput
+	{
+		return $this->output->getOutput();
+	}
+	
+	public function errorExit(string $msg): void
+	{
+		$this->getOutput()->error($msg);
+		exit;
 	}
 	
 	protected abstract function configureUmpy();
