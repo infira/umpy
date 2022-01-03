@@ -64,12 +64,19 @@ abstract class Install extends Command
 					$this->error("View function $func must return string");
 				}
 				$this->db->complexQuery(Variable::assign($vars, $q));
+				$this->installedMsg($q);
 			}
 			else {
 				$this->db->fileQuery($fn, $vars);
+				$this->installedMsg($fn);
 			}
 		}
 		$this->info('Views installed');
+	}
+	
+	private function installedMsg(string $file)
+	{
+		$this->msg('<fg=#00aaff>Installed view</>: ' . $file);
 	}
 	
 	private function installTriggers()
