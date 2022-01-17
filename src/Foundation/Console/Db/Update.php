@@ -1,54 +1,41 @@
 <?php
 
-namespace Infira\Umpy\console\db;
+namespace Infira\Umpy\Foundation\Console\Db;
 
 use Symfony\Component\Console\Command\Command as CommandAlias;
-use Infira\Umpy\console\helper\SqlFileCollector;
-use Infira\Poesis\orm\Model;
-use Infira\Utils\File;
 use Infira\Utils\Variable;
+use Symfony\Component\Finder\SplFileInfo;
 
-abstract class Update extends Command
+class Update extends Command
 {
-	protected                  $signature   = 'idb:update {--r|reset} {--f|flush}';
-	protected                  $description = 'Update Db';
-	protected SqlFileCollector $updates;
+	protected $signature   = 'db:update {--r|reset} {--f|flush}';
+	protected $description = 'Update Db';
 	
-	public function handle(): int
+	public function runDb(): int
 	{
-		$this->updates = $this->newSqlFileCollector();
-		$this->configureUmpy();
-		if (!$this->db) {
-			$this->error('Db connection is not initialized');
-		}
-		$this->update();
-		
-		return CommandAlias::SUCCESS;
-	}
-	
-	private function update()
-	{
-		$files = $this->updates->getFiles();
+		$files = $this->collectFiles(['*.sql'], false, ...$this->config->getUpdatePaths());
 		if (!$files) {
 			$this->error('No files to update');
 			exit;
 		}
 		
-		$vars = $this->updates->getVariables();
+		$vars = $this->config->getVariables();
 		foreach ($files as $file) {
 			$this->runSqlFile($file, $vars);
 		}
+		
+		return CommandAlias::SUCCESS;
 	}
 	
-	private function runSqlFile(string $file, array $vars)
+	private function runSqlFile(SplFileInfo $file, array $vars)
 	{
-		$lines = file($file);
+		$lines = file($file->getRealPath());
 		
 		// Loop through each line
 		$templine = "";
 		$queries  = [];
 		if ($this->input->getOption('reset') or $this->input->getOption('flush')) {
-			$this->getDbModel()->voidLog()->truncate();
+			$this->config->getUpdatesDbModel()->voidLog()->truncate();
 			if ($this->input->getOption('flush')) {
 				return;
 			}
@@ -75,7 +62,7 @@ abstract class Update extends Command
 		}
 		$isSystem = 1; //later when CMS is implemented this is needed
 		if ($queries) {
-			$dbUpdates = $this->getDbModel()->select()->getValueAsKey("hash");
+			$dbUpdates = $this->config->getUpdatesDbModel()->select()->getValueAsKey("hash");
 			
 			foreach ($queries as $updateNr => $rawQuery) {
 				$ok   = true;
@@ -86,7 +73,7 @@ abstract class Update extends Command
 					}
 				}
 				if ($ok === true) {
-					$Db = $this->getDbModel();
+					$Db = $this->config->getUpdatesDbModel();
 					$Db->voidLog();
 					$Db->hash($hash);
 					$Db->updateNr($updateNr);
@@ -95,15 +82,14 @@ abstract class Update extends Command
 					$Db->rawQuery($rawQuery);
 					$query = Variable::assign($vars, $rawQuery);
 					$Db->sqlQuery($query);
-					if (str_starts_with($query, "phpScript:")) {
-						$ex     = explode(':', $query);
-						$script = $this->getPhpScriptLocation($ex[1]);
+					if (preg_match('/phpScript:(.*);/m', $query, $matches)) {
+						$script = $this->getPhpScriptLocation($matches[1], $file->getPath());
 						if (!$this->input->getOption('reset')) {
 							$this->runPhpScript($script);
 						}
-						$Db->phpScriptFileName($script);
-						$Db->phpScript(File::getContent($script));
-						$this->msg('<fg=#cc00ff>PHP script</>: ' . $script);
+						$Db->phpScriptFileName($script->getFilename());
+						$Db->phpScript($script->getContents());
+						$this->msg('<fg=#cc00ff>PHP script</>: ' . $script->getFilename());
 					}
 					else {
 						if (!$this->input->getOption('reset')) {
@@ -118,15 +104,23 @@ abstract class Update extends Command
 		$this->info('Everything is up to date');
 	}
 	
-	private function runPhpScript($script): void
+	private function runPhpScript(SplFileInfo $script): void
 	{
-		if (!file_exists($script)) {
-			$this->errorExit("phpScript('$script') does not exist");
-		}
-		require_once $script;
+		require_once $script->getRealPath();
 	}
 	
-	abstract protected function getPhpScriptLocation(string $script): string;
-	
-	abstract protected function getDbModel(): Model;
+	protected function getPhpScriptLocation(string $script, string $workingPath): SplFileInfo
+	{
+		if (!str_ends_with($workingPath, '/')) {
+			$workingPath .= '/';
+		}
+		if (!str_starts_with($script, '/')) {
+			$script = realpath($workingPath) . '/scripts/' . $script;
+		}
+		if (!file_exists($script)) {
+			$this->errorExit("UpdateScript('$script') does not exists");
+		}
+		
+		return new SplFileInfo($script, $workingPath, basename($workingPath));
+	}
 }

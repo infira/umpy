@@ -1,6 +1,6 @@
 <?php
 
-namespace Infira\Umpy\helper;
+namespace Infira\Umpy\Support;
 
 use Infira\Utils\Dir;
 
