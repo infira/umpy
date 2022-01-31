@@ -5,7 +5,7 @@ namespace Infira\Umpy\Foundation\Console\Db;
 use Illuminate\Config\Repository;
 use Infira\Poesis\Connection;
 use Infira\Umpy\Support\Path;
-use Infira\Poesis\orm\Model;
+use Infira\Poesis\Model;
 
 class Config extends Repository
 {
