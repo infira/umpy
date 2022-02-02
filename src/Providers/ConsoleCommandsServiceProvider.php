@@ -3,10 +3,8 @@
 namespace Infira\Umpy\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Infira\Umpy\Foundation\Console\Make\MakeFacade;
+use Infira\Umpy\Foundation\Console\Make\{MakeEnum, MakeFacade, MakeSupport, MakeService};
 use Infira\Umpy\Foundation\Console\Db\{Install, Config, Update};
-use Infira\Umpy\Foundation\Console\Make\MakeSupport;
-use Infira\Umpy\Foundation\Console\Make\MakeService;
 
 class ConsoleCommandsServiceProvider extends ServiceProvider
 {
@@ -16,6 +14,7 @@ class ConsoleCommandsServiceProvider extends ServiceProvider
 	 * @var array
 	 */
 	protected $commands = [
+		'MakeEnum'        => 'command.make.enum',
 		'MakeFacade'      => 'command.make.facade',
 		'MakeSupport'     => 'command.make.support',
 		'MakeService'     => 'command.make.service',
@@ -60,6 +59,14 @@ class ConsoleCommandsServiceProvider extends ServiceProvider
 		$this->app->singleton('command.make.support', function ($app)
 		{
 			return new MakeSupport($app['files']);
+		});
+	}
+	
+	protected function registerMakeEnumCommand()
+	{
+		$this->app->singleton('command.make.enum', function ($app)
+		{
+			return new MakeEnum($app['files']);
 		});
 	}
 	
