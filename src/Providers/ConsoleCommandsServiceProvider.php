@@ -38,8 +38,10 @@ class ConsoleCommandsServiceProvider extends ServiceProvider
 		if (!$this->app->runningInConsole()) {
 			return;
 		}
-		$this->mergeConfigFrom($this->app->configPath('umpy.php'), 'umpy');
-		$this->config = $this->app->get('config');
+		if (file_exists($this->app->configPath('umpy.php'))) {
+			$this->mergeConfigFrom($this->app->configPath('umpy.php'), 'umpy');
+		}
+		$this->config = $this->app->get('config', []);
 		
 		$this->registerCommands($this->commands);
 	}
@@ -81,7 +83,7 @@ class ConsoleCommandsServiceProvider extends ServiceProvider
 	{
 		$this->app->singleton('command.db.install', function ($app)
 		{
-			return new Install(new Config($this->config->get('umpy.console.db')));
+			return new Install(new Config($this->config->get('umpy.console.db', [])));
 		});
 	}
 	
@@ -89,7 +91,7 @@ class ConsoleCommandsServiceProvider extends ServiceProvider
 	{
 		$this->app->singleton('command.db.update', function ($app)
 		{
-			return new Update(new Config($this->config->get('umpy.console.db')));
+			return new Update(new Config($this->config->get('umpy.console.db', [])));
 		});
 	}
 	
