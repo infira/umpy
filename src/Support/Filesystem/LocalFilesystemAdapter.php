@@ -93,22 +93,25 @@ class LocalFilesystemAdapter extends FilesystemAdapter
 	 * @throws \Exception
 	 * @return bool
 	 */
-	public function flush(): bool
+	public function selfFlush(): bool
+	{
+		return $this->parent()->flush($this->basename());
+	}
+	
+	/**
+	 * Delete current working directory
+	 *
+	 * @throws \Exception
+	 * @return bool
+	 */
+	public function selfDelete(): bool
 	{
 		return $this->parent()->deleteDirectory($this->basename());
 	}
 	
-	
-	/**
-	 * Flush current working directory
-	 *
-	 * @param string $path
-	 * @throws \Exception
-	 * @return bool
-	 */
-	public function flushDirectory(string $path): bool
+	public function flush(string $path): bool
 	{
-		return $this->build($path)->flush();
+		return File::cleanDirectory($this->path($path));
 	}
 	
 }
