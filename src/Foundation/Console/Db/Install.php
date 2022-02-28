@@ -3,7 +3,7 @@
 namespace Infira\Umpy\Foundation\Console\Db;
 
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
-use Infira\Utils\Variable;
+use Wolo\Str;
 
 class Install extends Command
 {
@@ -42,7 +42,7 @@ class Install extends Command
 				if (gettype($q) != 'string') {
 					$this->error("View function $func must return string");
 				}
-				$this->db->complexQuery(Variable::assign($vars, $q));
+				$this->db->complexQuery(Str::vars($q, $vars));
 				$this->installedMsg($q);
 			}
 			else {
@@ -66,7 +66,7 @@ class Install extends Command
 			$con     = $file->getContents();
 			$queries = explode("[TSP]", $con);
 			foreach ($queries as $q) {
-				$this->db->query(Variable::assign($vars, $q));
+				$this->db->query(Str::vars($q, $vars));
 			}
 			$this->msg('<info>installed trigger: </info>' . $file);
 		}

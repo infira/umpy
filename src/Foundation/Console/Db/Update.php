@@ -3,8 +3,8 @@
 namespace Infira\Umpy\Foundation\Console\Db;
 
 use Symfony\Component\Console\Command\Command as CommandAlias;
-use Infira\Utils\Variable;
 use Symfony\Component\Finder\SplFileInfo;
+use Wolo\Str;
 
 class Update extends Command
 {
@@ -80,7 +80,7 @@ class Update extends Command
 					//$Db->isSystem ($isSystem);
 					$Db->installed(1);
 					$Db->rawQuery($rawQuery);
-					$query = Variable::assign($vars, $rawQuery);
+					$query = Str::vars($rawQuery, $vars);
 					$Db->sqlQuery($query);
 					if (preg_match('/phpScript:(.*);/m', $query, $matches)) {
 						$script = $this->getPhpScriptLocation($matches[1], $file->getPath());
