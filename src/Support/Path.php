@@ -2,13 +2,12 @@
 
 namespace Infira\Umpy\Support;
 
-use Wolo\File\Dir;
 
 class Path
 {
 	protected static function rootPath(string $rootPath, string $file): string
 	{
-		return Dir::concat(base_path($rootPath), $file);
+		return \Wolo\File\Path::join(base_path($rootPath), $file);
 	}
 	
 	public static function root(string $path = ''): string
