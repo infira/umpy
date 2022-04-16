@@ -32,7 +32,7 @@ class LocalFilesystemAdapter extends FilesystemAdapter
 	 * @throws \Exception
 	 * @return $this
 	 */
-	public function build($path): static
+	public function build(string $path = ''): static
 	{
 		$fullPath = $path;
 		if ($path[0] != '/') {
