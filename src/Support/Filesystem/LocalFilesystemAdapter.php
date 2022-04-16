@@ -30,16 +30,16 @@ class LocalFilesystemAdapter extends FilesystemAdapter
 	 *
 	 * @param string $path
 	 * @throws \Exception
-	 * @return LocalFilesystemAdapter
+	 * @return $this
 	 */
-	public function build($path): LocalFilesystemAdapter
+	public function build($path): static
 	{
 		$fullPath = $path;
 		if ($path[0] != '/') {
 			$fullPath = $this->path($path);
 		}
 		
-		return new LocalFilesystemAdapter([
+		return new static([
 			'root' => $fullPath,
 		]);
 	}
@@ -48,9 +48,9 @@ class LocalFilesystemAdapter extends FilesystemAdapter
 	 * get parent folder as disk
 	 *
 	 * @throws \Exception
-	 * @return \Infira\Umpy\Support\Filesystem\LocalFilesystemAdapter
+	 * @return $this
 	 */
-	public function parent(): LocalFilesystemAdapter
+	public function parent(): static
 	{
 		return $this->build(realpath($this->path('../')));
 	}
