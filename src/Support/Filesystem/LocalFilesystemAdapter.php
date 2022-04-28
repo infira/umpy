@@ -35,7 +35,7 @@ class LocalFilesystemAdapter extends FilesystemAdapter
 	public function build(string $path = ''): static
 	{
 		$fullPath = $path;
-		if ($path[0] != '/') {
+		if ($path && $path[0] != '/') {
 			$fullPath = $this->path($path);
 		}
 		
